@@ -8,14 +8,16 @@ angular.module('parkingplannerApp')
 
     .controller('MainCtrl', function ($scope, myService, $http) {
         // Useful variables
-        var APIRestUrl = 'http://parkingplanner.apiary.io/v1/'
+        var APIRestUrl = 'http://parkingplanner.apiary.io/v1/' // NEED TO BE CHANGED JABRY
         $scope.mapOptions = {
             center: new google.maps.LatLng(51.5008, -0.0247),
-            zoom: 11,
+            zoom: 12,
             mapTypeId: google.maps.MapTypeId.ROADMAP
         };
 
-        $scope.myMarkers2 = [];
+        $scope.myParkingZoneMarkers = [];
+        $scope.myParkingBayMarkers = [];
+
 
         $scope.getNewData = function () {
             var result = { status: "Initialized." };
@@ -24,47 +26,6 @@ angular.module('parkingplannerApp')
                 $scope.result = data;
             });
         };
-
-        function drawCircles(map) {
-            var citymap = {};
-            citymap['chicago'] = {
-                center: new google.maps.LatLng(41.878113, -87.629798),
-                population: 2842518
-            };
-            citymap['newyork'] = {
-                center: new google.maps.LatLng(40.714352, -74.005973),
-                population: 8143197
-            };
-            citymap['losangeles'] = {
-                center: new google.maps.LatLng(34.052234, -118.243684),
-                population: 3844829
-            };
-            var cityCircle;
-
-            var mapOptions = {
-                zoom: 4,
-                center: new google.maps.LatLng(37.09024, -95.712891),
-                mapTypeId: google.maps.MapTypeId.TERRAIN
-            };
-
-
-            // Construct the circle for each value in citymap.
-            // Note: We scale the population by a factor of 20.
-            for (var city in citymap) {
-                var populationOptions = {
-                    strokeColor: '#FF0000',
-                    strokeOpacity: 0.8,
-                    strokeWeight: 2,
-                    fillColor: '#FF0000',
-                    fillOpacity: 0.35,
-                    map: map,
-                    center: citymap[city].center,
-                    radius: citymap[city].population / 20
-                };
-                // Add the circle for this city to the map.
-                cityCircle = new google.maps.Circle(populationOptions);
-            }
-        }
 
         $scope.createCustomtGooglemapsUI = function ($event, $params) {
             var controlDiv = document.createElement('div');
@@ -80,10 +41,12 @@ angular.module('parkingplannerApp')
             controlDiv.appendChild(controlUI);
 
             google.maps.event.addDomListener(controlUI, 'click', function () {
-                var test = getParkingZones($scope.myMap, $scope.myMarkers2);
+                var test = getParkingZones($scope.myMap, $scope.myParkingZoneMarkers);
 
 
             });
+
+
 
             var controlText = document.createElement('div');
             controlText.style.fontFamily = 'Arial,sans-serif';
@@ -95,8 +58,6 @@ angular.module('parkingplannerApp')
 
             $scope.myMap.controls[google.maps.ControlPosition.TOP_CENTER].push(controlDiv);
 
-
-
         }
         var UICreated = 0;
         $scope.onMapIdle = function() {
@@ -107,7 +68,7 @@ angular.module('parkingplannerApp')
             }
         };
 
-        var getParkingZones = function (map,m) {
+        var getParkingZones = function (map) {
 
             var bounds = map.getBounds();
             var southWest = bounds.getSouthWest();
@@ -121,24 +82,24 @@ angular.module('parkingplannerApp')
             console.log(url);
             var data = $http.get(url).then(function (result) {
                 data = result.data;
+                for (var i = 0; i < data.length; i++) {
+
+                    var latLgn = {d: data[i].latitude, e: data[i].longitude};
+
+                    var myLatlng = new google.maps.LatLng(parseFloat(data[i].latitude),parseFloat(data[i].longitude));
+
+                    $scope.myParkingZoneMarkers.push(new google.maps.Marker({
+                        map: map,
+                        position: myLatlng
+
+                    }));
+
+                }
             });
-            for (var i = 0; i < data.length; i++) {
-
-                var latLgn = {d: data[i].latitude, e: data[i].longitude};
-
-                var myLatlng = new google.maps.LatLng(parseFloat(data[i].latitude),parseFloat(data[i].longitude));
-
-                m.push(new google.maps.Marker({
-                    map: map,
-                    position: myLatlng
-
-                }));
-
-            }
 
         };
-        var getParkingBays = function (map) {
 
+        var getParkingBays = function (map) {
 
             var bounds = map.getBounds();
             var southWest = bounds.getSouthWest();
@@ -148,20 +109,35 @@ angular.module('parkingplannerApp')
             var minLon = southWest.lng();
             var maxLon = northEast.lng();
 
-            var url = APIRestUrl + 'parkingzone{' + minLat + '/' + minLon + '/' + maxLat + '/' + maxLon;
-
+            var url = APIRestUrl + 'parkingzone?' + minLat + '/' + minLon + '/' + maxLat + '/' + maxLon ; // NEED TO BE CHANGED JABRY
+            console.log(url);
             var data = $http.get(url).then(function (result) {
                 data = result.data;
+                for (var i = 0; i < data.length; i++) {
+
+                    var latLgn = {d: data[i].latitude, e: data[i].longitude};
+
+                    var myLatlng = new google.maps.LatLng(parseFloat(data[i].latitude),parseFloat(data[i].longitude));
+
+                    $scope.myParkingBayMarkers.push(new google.maps.Marker({
+                        map: map,
+                        position: myLatlng
+
+                    }));
+
+                }
             });
 
-            return data;
         };
-
 
         $scope.getServerData = function () {
 
             drawCircles($scope.myMap);
         };
+
+        $scope.getParkingZones = getParkingZones;
+
+
 
 
         var beaches = [
@@ -184,6 +160,7 @@ angular.module('parkingplannerApp')
             // the Y direction down.
             var image = {
                 url: 'images/yeoman.png',
+
                 // This marker is 20 pixels wide by 32 pixels tall.
                 size: new google.maps.Size(20, 32),
                 // The origin for this image is 0,0.
