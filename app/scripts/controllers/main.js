@@ -78,7 +78,7 @@ angular.module('parkingplannerApp')
             var minLon = southWest.lng();
             var maxLon = northEast.lng();
 
-            var url = APIRestUrl + 'parkingzone?' + minLat + '/' + minLon + '/' + maxLat + '/' + maxLon ;
+            var url = APIRestUrl + 'parkingzone?minLat=' + minLat + '&minLon=' + minLon + '&maxLat=' + maxLat + '&maxLon=' + maxLon ;
             console.log(url);
             var data = $http.get(url).then(function (result) {
                 data = result.data;
@@ -109,7 +109,7 @@ angular.module('parkingplannerApp')
             var minLon = southWest.lng();
             var maxLon = northEast.lng();
 
-            var url = APIRestUrl + 'parkingzone?' + minLat + '/' + minLon + '/' + maxLat + '/' + maxLon ; // NEED TO BE CHANGED JABRY
+            var url = APIRestUrl + 'bay?minLat=' + minLat + '&minLon=' + minLon + '&maxLat=' + maxLat + '&maxLon=' + maxLon ; 
             console.log(url);
             var data = $http.get(url).then(function (result) {
                 data = result.data;
