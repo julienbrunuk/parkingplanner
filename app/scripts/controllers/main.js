@@ -43,7 +43,7 @@ angular.module('parkingplannerApp')
             google.maps.event.addDomListener(controlUI, 'click', function () {
                 var test = getParkingZones($scope.myMap, $scope.myParkingZoneMarkers);
 
-
+                
             });
 
 
